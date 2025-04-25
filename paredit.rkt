@@ -14,13 +14,9 @@
     (keybinding key name) ...))
 
 (define-syntax (define-shortcut stx)
-  ;; Add esc; equivalent key bindings for all the meta bindings.
-  (define (add-esc-and-option-key-bindings s-keys)
+  ;; Add option equivalent key bindings for all the meta bindings.
+  (define (add-option-key-bindings s-keys)
     (define keys (syntax->datum s-keys))
-    (define esc-variants
-      (for/list ([k (in-list keys)]
-                 #:when (regexp-match? #rx"m:" k))
-        (string-append "esc;" (regexp-replace* #rx"m:" k ""))))
     (define option-variants
       (for/list ([k (in-list keys)]
                  #:when (regexp-match? #rx"m:" k))
@@ -29,14 +25,14 @@
     ;; are removed. This means that if we add some esc; key bindings manually,
     ;; for example by accident, it will not be duplicated, affecting display
     ;; of key bindings in DrRacket.
-    (remove-duplicates (append esc-variants option-variants keys)))
+    (remove-duplicates (append option-variants keys)))
   (syntax-case stx ()
     [(_ key (name . args) body* ...)
      #'(define-shortcut key name
          (λ args body* ...))]
     [(_ (key ...) name proc)
      #`(define-shortcut-internal
-         (#,@(add-esc-and-option-key-bindings #'(key ...)))
+         (#,@(add-option-key-bindings #'(key ...)))
          name proc)]
     [(_ key name proc)
      #'(define-shortcut (key) name proc)]))
